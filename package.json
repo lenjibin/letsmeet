@@ -1,0 +1,22 @@
+{
+  "name": "interunion",
+  "version": "1.0.0",
+  "description": "finding shared free time on calendars - IAP 2016",
+  "main": "app.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lenjibin/interunion.git"
+  },
+  "author": "benjilin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lenjibin/interunion/issues"
+  },
+  "homepage": "https://github.com/lenjibin/interunion#readme"
+}
+
