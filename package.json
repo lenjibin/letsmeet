@@ -4,6 +4,7 @@
   "description": "finding shared free time on calendars - IAP 2016",
   "main": "app.js",
   "dependencies": {
+    "google-auth-library": "^0.9.7",
     "googleapis": "^2.1.7"
   },
   "devDependencies": {},
