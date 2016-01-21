@@ -50,8 +50,8 @@ function getGoogleDevCredentials(callback) {
 // @param callback function that takes a google.auth.OAuth2 as a parameter
 // Get a new OAuth2Client, and call the callback
 function getNewOAuth2Client(credentials, reqHost, callback) {
-  var clientSecret = credentials.installed.client_secret;
-  var clientId = credentials.installed.client_id;
+  var clientSecret = credentials.web.client_secret;
+  var clientId = credentials.web.client_id;
   var redirectUrl = "http://" + path.join(reqHost, "auth").toString();
   var oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
   callback(oauth2Client);
