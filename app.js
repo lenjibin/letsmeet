@@ -7,13 +7,12 @@ var app = express();
 app.use(express.static('static'));
 
 app.get('/', function (req, res) {
-  res.send(req.headers.host);
-  // res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/ask', function(req, res) {
   getGoogleDevCredentials(function(credentials) {
-    getNewOAuth2Client(credentials, function(oauth2Client) {
+    getNewOAuth2Client(credentials, req.get('host'), function(oauth2Client) {
       getAuthUrl(oauth2Client, function(authUrl) {
         res.redirect(authUrl);
       });
@@ -23,7 +22,7 @@ app.get('/ask', function(req, res) {
 
 app.get('/auth', function(req, res) {
   var code = req.query.code;
-  getOAuth2ClientWithToken(code, listEvents);
+  getOAuth2ClientWithToken(code, req.get('host'), listEvents);
   res.redirect('/');
 });
 
@@ -47,12 +46,13 @@ function getGoogleDevCredentials(callback) {
 }
 
 // @param credentials google client_secret (object)
+// @param reqHost req.get('host') used to establish for redirect url
 // @param callback function that takes a google.auth.OAuth2 as a parameter
 // Get a new OAuth2Client, and call the callback
-function getNewOAuth2Client(credentials, callback) {
+function getNewOAuth2Client(credentials, reqHost, callback) {
   var clientSecret = credentials.installed.client_secret;
   var clientId = credentials.installed.client_id;
-  var redirectUrl = credentials.installed.redirect_uris[1];
+  var redirectUrl = "http://" + path.join(reqHost, "auth").toString();
   var oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
   callback(oauth2Client);
 }
@@ -67,10 +67,11 @@ function getAuthUrl(oauth2Client, callback) {
 }
 
 // @param google auth code
+// @param reqHost req.get('host') used to establish for redirect url
 // attaches a token to a new oauthclient, and calls callback with it (behavior within getNewToken)
-function getOAuth2ClientWithToken(code, callback) {
+function getOAuth2ClientWithToken(code, reqHost, callback) {
   getGoogleDevCredentials(function(credentials) {
-    getNewOAuth2Client(credentials, function(oauth2Client) {
+    getNewOAuth2Client(credentials, reqHost, function(oauth2Client) {
       // TODO: look up if we already have a token stored for the current user, and if we do:
       //   use that token as the credentials, then call the callback
       getNewToken(oauth2Client, code, callback);
