@@ -22,6 +22,7 @@ app.get('/ask', function(req, res) {
 
 app.get('/auth', function(req, res) {
   var code = req.query.code;
+  console.log(req.headers.host);
   getOAuth2ClientWithToken(code, listEvents);
   res.redirect('/');
 });
