@@ -11,6 +11,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/ask', function(req, res) {
+  console.log(req.headers.host);
   getGoogleDevCredentials(function(credentials) {
     getNewOAuth2Client(credentials, function(oauth2Client) {
       getAuthUrl(oauth2Client, function(authUrl) {
@@ -22,7 +23,6 @@ app.get('/ask', function(req, res) {
 
 app.get('/auth', function(req, res) {
   var code = req.query.code;
-  console.log(req.headers.host);
   getOAuth2ClientWithToken(code, listEvents);
   res.redirect('/');
 });
