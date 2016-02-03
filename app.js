@@ -98,33 +98,53 @@ function getOAuth2ClientWithToken(code, reqHost, callback) {
 /**
  * Lists the next 10 events on the user's primary calendar.
  *
- * @param {google.auth.OAuth2} oauth An authorized OAuth2 client.
+ * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
  // TODO: write my own function that interacts with the calendar differently, but for now, this tests that I have access to read the calendar
-function listEvents(oauth) {
+ //   timeMax will end up being set depending how long the search should go for.
+ //   should be able to specify certain time intervals? (lunch, dinner, etc)
+function listEvents(auth) {
   var calendar = google.calendar('v3');
-  calendar.events.list({
-    auth: oauth,
-    calendarId: 'primary',
-    timeMin: (new Date()).toISOString(),
-    maxResults: 10,
-    singleEvents: true,
-    orderBy: 'startTime'
+  calendar.calendarList.list({
+    auth: auth
   }, function(err, response) {
     if (err) {
-      console.log('The API returned an error: ' + err);
+      console.log('Calendar list API returned an error: ' + err);
       return;
     }
-    var events = response.items;
-    if (events.length == 0) {
-      console.log('No upcoming events found.');
-    } else {
-      console.log('Upcoming 10 events:');
-      for (var i = 0; i < events.length; i++) {
-        var event = events[i];
-        var start = event.start.dateTime || event.start.date;
-        console.log('%s - %s', start, event.summary);
-      }
+    var calendars = response.items;
+    for (var calendars_i = 0; calendars_i < calendars.length; calendars_i++) {
+      var calendarId = calendars[calendars_i].id;
+      (function(index) {
+        if (calendarId.indexOf('#') == -1) {
+          calendar.events.list({
+            auth: auth,
+            calendarId: calendarId,
+            timeMin: (new Date()).toISOString(),
+            maxResults: 10,
+            singleEvents: true,
+            orderBy: 'startTime'
+          }, function(err, response) {
+            if (err) {
+              console.log('The API returned an error: ' + err);
+              return;
+            }
+
+            console.log('---------------------' + calendars[index].summary + '---------------------');
+            var events = response.items;
+            if (events.length == 0) {
+              console.log('No upcoming events found.');
+            } else {
+              console.log('Upcoming 10 events:');
+              for (var i = 0; i < events.length; i++) {
+                var event = events[i];
+                var start = event.start.dateTime || event.start.date;
+                console.log('%s - %s', start, event.summary);
+              }
+            }
+          })
+        }
+      })(calendars_i);
     }
   });
 }
