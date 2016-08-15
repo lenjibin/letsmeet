@@ -34,7 +34,6 @@ var server = app.listen(app.get('port'), function () {
   console.log('Example app listening at http://%s:%s', host, port);
 });
 
-// Read static/client_secret.json and call callback, passing in the parsed content of the file (Google's credentials)
 function getGoogleDevCredentials(callback) {
   fs.readFile('static/client_secret.json', function processClientSecret(err, content) {
     if (err) {
@@ -45,10 +44,6 @@ function getGoogleDevCredentials(callback) {
   });
 }
 
-// @param credentials google client_secret (object)
-// @param reqHost req.get('host') used to establish for redirect url
-// @param callback function that takes a google.auth.OAuth2 as a parameter
-// Get a new OAuth2Client, and call the callback
 function getNewOAuth2Client(credentials, reqHost, callback) {
   var clientSecret = credentials.web.client_secret;
   var clientId = credentials.web.client_id;
@@ -57,8 +52,6 @@ function getNewOAuth2Client(credentials, reqHost, callback) {
   callback(oauth2Client);
 }
 
-// @param {google.auth.OAuth2} oauth2Client
-// @param callback that takes a string (the generated auth url)
 function getAuthUrl(oauth2Client, callback) {
   callback(oauth2Client.generateAuthUrl({
     access_type: 'offline',
@@ -66,9 +59,6 @@ function getAuthUrl(oauth2Client, callback) {
   }));
 }
 
-// @param google auth code
-// @param reqHost req.get('host') used to establish for redirect url
-// attaches a token to a new oauthclient, and calls callback with it (behavior within getNewToken)
 function getOAuth2ClientWithToken(code, reqHost, callback) {
   getGoogleDevCredentials(function(credentials) {
     getNewOAuth2Client(credentials, reqHost, function(oauth2Client) {
@@ -78,10 +68,6 @@ function getOAuth2ClientWithToken(code, reqHost, callback) {
     });
   });
 
-  // @param google auth client
-  // @param google auth code
-  // @param callback to call with the authorized oauthclient
-  // Gets a new token and attaches it to the given oauthclient before calling callback
   function getNewToken(oauth2Client, code, callback) {
     oauth2Client.getToken(code, function(err, token) {
       if (err) {
@@ -95,14 +81,6 @@ function getOAuth2ClientWithToken(code, reqHost, callback) {
   }
 }
 
-/**
- * Lists the next 10 events on the user's primary calendar.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
- // TODO: write my own function that interacts with the calendar differently, but for now, this tests that I have access to read the calendar
- //   timeMax will end up being set depending how long the search should go for.
- //   should be able to specify certain time intervals? (lunch, dinner, etc)
 function listEvents(auth) {
   var calendar = google.calendar('v3');
   calendar.calendarList.list({
@@ -115,6 +93,7 @@ function listEvents(auth) {
     var calendars = response.items;
     for (var calendars_i = 0; calendars_i < calendars.length; calendars_i++) {
       var calendarId = calendars[calendars_i].id;
+      console.log(calendarId);
       (function(index) {
         if (calendarId.indexOf('#') == -1) {
           calendar.events.list({
