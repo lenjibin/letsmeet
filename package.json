@@ -1,5 +1,5 @@
 {
-  "name": "interunion",
+  "name": "letsmeet",
   "version": "1.0.0",
   "description": "finding shared free time on calendars - IAP 2016",
   "main": "app.js",
@@ -13,12 +13,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lenjibin/interunion.git"
+    "url": "https://github.com/lenjibin/letsmeet.git"
   },
   "author": "benjilin",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lenjibin/interunion/issues"
+    "url": "https://github.com/lenjibin/letsmeet/issues"
   },
-  "homepage": "https://github.com/lenjibin/interunion#readme"
+  "homepage": "https://github.com/lenjibin/letsmeet#readme"
 }
