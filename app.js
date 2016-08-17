@@ -123,7 +123,7 @@ function storeAuthToken(auth) {
   }, function(err, response) {
     email = response.id;
     emailToAuth[email] = auth;
-    console.log(emailToAuth);
+    console.log("auth token for %s stored", email);
   });
 }
 
