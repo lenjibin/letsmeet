@@ -173,6 +173,25 @@ function listEvents(auth) {
   });
 }
 
+function asyncLoop(iterations, func, callback) {
+  var index = 0;
+  var done = false;
+  var loop = {
+    next: function() {
+      if (done) { return; }
+      if (index < iterations) {
+        index++;
+        func(loop);
+      } else {
+        done = true;
+        callback();
+      }
+    },
+    iteration: function() { return index - 1; }
+  };
+  loop.next();
+}
+
 function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
   var TimeBlock = function(start, end) {
     this.start = start;
@@ -186,25 +205,26 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
 
   var calendar1Events = new CalendarEvents();
   var calendar2Events = new CalendarEvents();
-  for (var calendars1_i = 0; calendars1_i < calendars1.length; calendars1_i++) {
-    handleCalendar(auth1, calendars1[calendars1_i], calendar1Events);
-  }
-  for (var calendars2_i = 0; calendars2_i < calendars2.length; calendars2_i++) {
-    handleCalendar(auth2, calendars2[calendars2_i], calendar2Events);
-  }
+  asyncLoop(calendars1.length, function(loop) {
+    handleCalendar(auth1, calendars1[loop.iteration()], calendar1Events, function() { loop.next(); });
+  }, function() {
+    asyncLoop(calendars2.length, function(loop) {
+      handleCalendar(auth2, calendars2[loop.iteration()], calendar2Events, function() { loop.next(); });
+    }, function() {
+      var startingTimeBlock = new TimeBlock(new Date(), new Date(new Date().getTime() + searchLength*60000));
+      var timeBlocks = [startingTimeBlock];
+      timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
+      timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
 
-  var startingTimeBlock = new TimeBlock(new Date(), new Date(new Date().getTime() + searchLength*60000));
-  var timeBlocks = [startingTimeBlock];
-  timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
-  timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
-
-  console.log(timeBlocks);
+      console.log(timeBlocks);
+    });
+  });
 
   function applyOccupiedTimeBlocks(timeBlocks, calendarEvents) {
     var calendarEvent = calendarEvents.shift();
     while(calendarEvent != null) {
       for (var i = 0; i < timeBlocks.length; i++) {
-        timeBlocks[i] = newTimeBlocks(timeBlocks[i], new TimeBlock(calendarEvent.start.dateTime, calendarEvent.end.dateTime));
+        timeBlocks[i] = newTimeBlocks(timeBlocks[i], new TimeBlock(new Date(calendarEvent.start.dateTime), new Date(calendarEvent.end.dateTime)));
       }
       timeBlocks = [].concat.apply([], timeBlocks);
       calendarEvent = calendarEvents.shift();
@@ -224,7 +244,7 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
     }
   }
 
-  function handleCalendar(auth, calendar, calendarEvents) {
+  function handleCalendar(auth, calendar, calendarEvents, callback) {
     var googleCalendarApi = google.calendar('v3');
     if (calendar.id.indexOf('#') == -1) {
       googleCalendarApi.events.list({
@@ -249,7 +269,10 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
             calendarEvents.events.push(event);
           }
         }
-      })
+        callback();
+      });
+    } else {
+      callback();
     }
   }
 }
