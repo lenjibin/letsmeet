@@ -36,7 +36,7 @@ app.get('/list', function(req, res) {
 });
 
 app.get('/compare', function(req, res) {
-  var weekInMinutes = 10080;
+  var dayInMinutes = 1440;
 
   var user1 = req.query.user1;
   var user2 = req.query.user2;
@@ -59,7 +59,7 @@ app.get('/compare', function(req, res) {
         return;
       }
       var calendars2 = response.items;
-      findMutualTime(auth1, auth2, calendars1, calendars2, weekInMinutes);
+      findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
     });
   });
   res.redirect('/');
