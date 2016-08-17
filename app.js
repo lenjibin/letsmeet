@@ -31,7 +31,7 @@ app.get('/auth', function(req, res) {
 
 app.get('/list', function(req, res) {
   var user = req.query.user;
-  listAllEvents(emailToAuth[user]);
+  listEvents(emailToAuth[user]);
   res.redirect('/');
 });
 
@@ -127,7 +127,7 @@ function storeAuthToken(auth) {
   });
 }
 
-function listAllEvents(auth) {
+function listEvents(auth) {
   var googleCalendarApi = google.calendar('v3');
   googleCalendarApi.calendarList.list({
     auth: auth
