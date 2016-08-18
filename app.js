@@ -2,7 +2,7 @@ var express = require('express');
 var path = require('path');
 var google = require('googleapis');
 var fs = require('fs');
-var helpers = require('./helpers');
+var helpers = require('./main/helpers');
 var app = express();
 
 var emailToAuth = {};
@@ -10,7 +10,7 @@ var emailToAuth = {};
 app.use(express.static('static'));
 
 app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'main/index.html'));
 });
 
 app.get('/ask', function(req, res) {
