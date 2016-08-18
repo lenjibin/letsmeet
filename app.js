@@ -29,12 +29,6 @@ app.get('/auth', function(req, res) {
   res.redirect('/');
 });
 
-app.get('/list', function(req, res) {
-  var user = req.query.user;
-  listEvents(emailToAuth[user]);
-  res.redirect('/');
-});
-
 app.get('/compare', function(req, res) {
   var dayInMinutes = 1440;
 
@@ -124,52 +118,6 @@ function storeAuthToken(auth) {
     email = response.id;
     emailToAuth[email] = auth;
     console.log("auth token for %s stored", email);
-  });
-}
-
-function listEvents(auth) {
-  var googleCalendarApi = google.calendar('v3');
-  googleCalendarApi.calendarList.list({
-    auth: auth
-  }, function(err, response) {
-    if (err) {
-      console.log('Calendar list API returned an error: ' + err);
-      return;
-    }
-    var calendars = response.items;
-    for (var calendars_i = 0; calendars_i < calendars.length; calendars_i++) {
-      (function(calendar) {
-        if (calendar.id.indexOf('#') == -1) {
-          googleCalendarApi.events.list({
-            auth: auth,
-            calendarId: calendar.id,
-            timeMin: new Date().toISOString(),
-            timeZone: 'Atlantic/Reykjavik',
-            maxResults: 10,
-            singleEvents: true,
-            orderBy: 'startTime'
-          }, function(err, response) {
-            if (err) {
-              console.log('The API returned an error: ' + err);
-              return;
-            }
-
-            console.log('---------------------' + calendar.summary + '---------------------');
-            var events = response.items;
-            if (events.length == 0) {
-              console.log('No upcoming events found.');
-            } else {
-              console.log('Upcoming 10 events:');
-              for (var i = 0; i < events.length; i++) {
-                var event = events[i];
-                var start = event.start.dateTime || event.start.date;
-                console.log('%s - %s', start, event.summary);
-              }
-            }
-          })
-        }
-      })(calendars[calendars_i]);
-    }
   });
 }
 
