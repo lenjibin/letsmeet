@@ -2,14 +2,15 @@ var express = require('express');
 var path = require('path');
 var google = require('googleapis');
 var fs = require('fs');
+var helpers = require('./helpers');
 var app = express();
 
 var emailToAuth = {};
 
 app.use(express.static('static'));
 
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'main/index.html'));
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/ask', function(req, res) {
@@ -60,7 +61,7 @@ app.get('/compare', function(req, res) {
 });
 
 app.set('port', (process.env.PORT || 3000));
-var server = app.listen(app.get('port'), function () {
+var server = app.listen(app.get('port'), function() {
   var host = server.address().address;
   var port = server.address().port;
 
@@ -68,7 +69,7 @@ var server = app.listen(app.get('port'), function () {
 });
 
 function getGoogleDevCredentials(callback) {
-  fs.readFile('static/client_secret.json', function processClientSecret(err, content) {
+  fs.readFile('secret/client_secret.json', function processClientSecret(err, content) {
     if (err) {
       console.log('Error loading client secret file: ' + err);
       return;
@@ -121,25 +122,6 @@ function storeAuthToken(auth) {
   });
 }
 
-function asyncLoop(iterations, func, callback) {
-  var index = 0;
-  var done = false;
-  var loop = {
-    next: function() {
-      if (done) { return; }
-      if (index < iterations) {
-        index++;
-        func(loop);
-      } else {
-        done = true;
-        callback();
-      }
-    },
-    iteration: function() { return index - 1; }
-  };
-  loop.next();
-}
-
 function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
   var TimeBlock = function(start, end) {
     this.start = start;
@@ -153,10 +135,10 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
 
   var calendar1Events = new CalendarEvents();
   var calendar2Events = new CalendarEvents();
-  asyncLoop(calendars1.length, function(loop) {
+  helpers.asyncLoop(calendars1.length, function(loop) {
     handleCalendar(auth1, calendars1[loop.iteration()], calendar1Events, function() { loop.next(); });
   }, function() {
-    asyncLoop(calendars2.length, function(loop) {
+    helpers.asyncLoop(calendars2.length, function(loop) {
       handleCalendar(auth2, calendars2[loop.iteration()], calendar2Events, function() { loop.next(); });
     }, function() {
       var startingTimeBlock = new TimeBlock(new Date(), new Date(new Date().getTime() + searchLength*60000));
