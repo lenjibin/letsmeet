@@ -1,8 +1,9 @@
 var express = require('express');
-var path = require('path');
-var google = require('googleapis');
 var fs = require('fs');
+var google = require('googleapis');
+var path = require('path');
 var helpers = require('./main/helpers');
+var creds = require('./main/google_credentials');
 var app = express();
 
 var emailToAuth = {};
@@ -14,8 +15,8 @@ app.get('/', function(req, res) {
 });
 
 app.get('/ask', function(req, res) {
-  getGoogleDevCredentials(function(credentials) {
-    getNewOAuth2Client(credentials, req.get('host'), function(oauth2Client) {
+  creds.getGoogleDevCredentials(function(credentials) {
+    creds.getNewOAuth2Client(credentials, req.get('host'), function(oauth2Client) {
       res.redirect(oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: ['https://www.googleapis.com/auth/calendar.readonly']
@@ -26,7 +27,7 @@ app.get('/ask', function(req, res) {
 
 app.get('/auth', function(req, res) {
   var code = req.query.code;
-  getOAuth2ClientWithToken(code, req.get('host'), storeAuthToken);
+  creds.getOAuth2ClientWithToken(code, req.get('host'), storeAuthToken);
   res.redirect('/');
 });
 
@@ -67,47 +68,6 @@ var server = app.listen(app.get('port'), function() {
 
   console.log('Example app listening at http://%s:%s', host, port);
 });
-
-function getGoogleDevCredentials(callback) {
-  fs.readFile('secret/client_secret.json', function processClientSecret(err, content) {
-    if (err) {
-      console.log('Error loading client secret file: ' + err);
-      return;
-    }
-    callback(JSON.parse(content));
-  });
-}
-
-function getNewOAuth2Client(credentials, requestHost, callback) {
-  var clientSecret = credentials.web.client_secret;
-  var clientId = credentials.web.client_id;
-  var redirectUrl = "http://" + path.join(requestHost, "auth").toString();
-  var oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
-  callback(oauth2Client);
-}
-
-function getOAuth2ClientWithToken(code, requestHost, callback) {
-  getGoogleDevCredentials(function(credentials) {
-    getNewOAuth2Client(credentials, requestHost, function(oauth2Client) {
-      // TODO: look up if we already have a token stored for the current user, and if we do:
-      //   use that token as the credentials, then call the callback
-      //   If we dont : call get new token.
-      getNewToken(oauth2Client, code, callback);
-    });
-  });
-
-  function getNewToken(oauth2Client, code, callback) {
-    oauth2Client.getToken(code, function(err, token) {
-      if (err) {
-        console.log('Error while trying to retrieve access token', err);
-        return;
-      }
-      oauth2Client.credentials = token;
-      // TODO: store token in db (lookup by email)
-      callback(oauth2Client);
-    });
-  }
-}
 
 function storeAuthToken(auth) {
   var googleCalendarApi = google.calendar('v3');
