@@ -47,19 +47,22 @@ app.post('/compare', function(req, res) {
     auth: auth1
   }, function(err, response) {
     if (err) {
-      console.log('Calendar list API for user 1 returned an error: ' + err);
+      var error = 'Service is not authorized to access calendar list API for user 1: ' + err;
+      console.log(error);
+      res.status(403).send(error);
     } else {
       var calendars1 = response.items;
       googleCalendarApi.calendarList.list({
         auth: auth2
       }, function(err, response) {
         if (err) {
-          console.log('Calendar list API for user 2 returned an error: ' + err);
+          var error = 'Service is not authorized to access calendar list API for user 2: ' + err;
+          console.log(error);
+          res.status(403).send(error);
         } else {
           var calendars2 = response.items;
           core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, function(timeBlocks) {
-            res.setHeader('Content-Type', 'application/json');
-            res.send(JSON.stringify(timeBlocks));
+            res.json(timeBlocks);
           });
         }
       });
