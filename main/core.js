@@ -1,7 +1,7 @@
 var google = require('googleapis');
 var helpers = require('./helpers');
 
-function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
+function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, callback) {
   var TimeBlock = function(start, end) {
     this.start = start;
     this.end = end;
@@ -20,12 +20,12 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
     helpers.asyncLoop(calendars2.length, function(loop) {
       handleCalendar(auth2, calendars2[loop.iteration()], calendar2Events, function() { loop.next(); });
     }, function() {
-      var startingTimeBlock = new TimeBlock(new Date(), new Date(new Date().getTime() + searchLength*60000));
+      var startingTimeBlock = new TimeBlock(new Date(), new Date(new Date().getTime() + searchLengthInMinutes*60000));
       var timeBlocks = [startingTimeBlock];
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
 
-      console.log(timeBlocks);
+      callback(timeBlocks);
     });
   });
 
@@ -60,14 +60,14 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
         auth: auth,
         calendarId: calendar.id,
         timeMin: new Date().toISOString(),
-        timeMax: new Date(new Date().getTime() + searchLength*60000).toISOString(),
+        timeMax: new Date(new Date().getTime() + searchLengthInMinutes*60000).toISOString(),
         timeZone: 'Atlantic/Reykjavik',
         singleEvents: true,
         orderBy: 'startTime'
       }, function(err, response) {
         if (err) {
-          console.log('The API returned an error: ' + err);
-          return;
+          console.log('Events List API returned an error: ' + err);
+          callback();
         }
         var events = response.items;
         for (var i = 0; i < events.length; i++) {
@@ -91,4 +91,3 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
 // TODO: check which time blocks are longer than hangoutLength
 
 module.exports.findMutualTime = findMutualTime;
-

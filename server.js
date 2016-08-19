@@ -1,14 +1,18 @@
+var bodyParser = require('body-parser');
 var express = require('express');
 var fs = require('fs');
 var google = require('googleapis');
 var path = require('path');
 var helpers = require('./main/helpers');
 var creds = require('./main/google_credentials');
-var letsmeet = require('./main/letsmeet');
+var core = require('./main/core');
 var app = express();
 
 var emailToAuth = {};
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/node_modules/angular', express.static('node_modules/angular'));
 app.use(express.static('static'));
 
 app.get('/', function(req, res) {
@@ -32,11 +36,10 @@ app.get('/auth', function(req, res) {
   res.redirect('/');
 });
 
-app.get('/compare', function(req, res) {
-  var dayInMinutes = 1440;
-
-  var user1 = req.query.user1;
-  var user2 = req.query.user2;
+app.post('/compare', function(req, res) {
+  var user1 = req.body.user1;
+  var user2 = req.body.user2;
+  var searchLengthInMinutes = req.body.searchLengthInMinutes;
   var auth1 = emailToAuth[user1];
   var auth2 = emailToAuth[user2];
   var googleCalendarApi = google.calendar('v3');
@@ -44,22 +47,24 @@ app.get('/compare', function(req, res) {
     auth: auth1
   }, function(err, response) {
     if (err) {
-      console.log('Calendar list API returned an error: ' + err);
-      return;
+      console.log('Calendar list API for user 1 returned an error: ' + err);
+    } else {
+      var calendars1 = response.items;
+      googleCalendarApi.calendarList.list({
+        auth: auth2
+      }, function(err, response) {
+        if (err) {
+          console.log('Calendar list API for user 2 returned an error: ' + err);
+        } else {
+          var calendars2 = response.items;
+          core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, function(timeBlocks) {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(timeBlocks));
+          });
+        }
+      });
     }
-    var calendars1 = response.items;
-    googleCalendarApi.calendarList.list({
-      auth: auth2
-    }, function(err, response) {
-      if (err) {
-        console.log('Calendar list API returned an error: ' + err);
-        return;
-      }
-      var calendars2 = response.items;
-      letsmeet.findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
-    });
   });
-  res.redirect('/');
 });
 
 app.set('port', (process.env.PORT || 3000));
@@ -77,8 +82,12 @@ function storeAuthToken(auth) {
     auth: auth,
     calendarId: 'primary'
   }, function(err, response) {
-    email = response.id;
-    emailToAuth[email] = auth;
-    console.log("auth token for %s stored", email);
+    if (err) {
+      console.log("This should never error. Could not get account's primary caldendar: " + err);
+    } else {
+      email = response.id;
+      emailToAuth[email] = auth;
+      console.log("auth token for %s stored", email);
+    }
   });
 }
