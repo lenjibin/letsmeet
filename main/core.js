@@ -66,7 +66,7 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
         orderBy: 'startTime'
       }, function(err, response) {
         if (err) {
-          console.log('The API returned an error: ' + err);
+          console.log('Events List API returned an error: ' + err);
           callback();
         }
         var events = response.items;

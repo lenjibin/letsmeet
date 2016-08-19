@@ -11,15 +11,13 @@
       <a href="ask" class="button">Login</a>
     </div>
     <div ng-controller="TimeBlockController as tbc">
-      <p>{{tbc.variable}}</p>
+      <a href="" ng-click="tbc.compare()">Compare</a>
       <form>
         Email 1:<br>
         <input type="text" ng-model="tbc.user1"><br>
         Email 2:<br>
-        <input type="text" name="user2">
-        <input type="submit" value="Compare">
+        <input type="text" ng-model="tbc.user2">
       </form>
-      <p>{{tbc.user1}}</p>
       <p>{{tbc}}</p>
     </div>
     <div>

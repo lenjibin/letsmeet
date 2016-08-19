@@ -47,14 +47,14 @@ app.post('/compare', function(req, res) {
     auth: auth1
   }, function(err, response) {
     if (err) {
-      console.log('Calendar list API returned an error: ' + err);
+      console.log('Calendar list API for user 1 returned an error: ' + err);
     } else {
       var calendars1 = response.items;
       googleCalendarApi.calendarList.list({
         auth: auth2
       }, function(err, response) {
         if (err) {
-          console.log('Calendar list API returned an error: ' + err);
+          console.log('Calendar list API for user 2 returned an error: ' + err);
         } else {
           var calendars2 = response.items;
           core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, function(timeBlocks) {
@@ -82,8 +82,12 @@ function storeAuthToken(auth) {
     auth: auth,
     calendarId: 'primary'
   }, function(err, response) {
-    email = response.id;
-    emailToAuth[email] = auth;
-    console.log("auth token for %s stored", email);
+    if (err) {
+      console.log("This should never error. Could not get account's primary caldendar: " + err);
+    } else {
+      email = response.id;
+      emailToAuth[email] = auth;
+      console.log("auth token for %s stored", email);
+    }
   });
 }
