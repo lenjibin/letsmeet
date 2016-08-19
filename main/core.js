@@ -25,7 +25,7 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
 
-      console.log(timeBlocks);
+      return timeBlocks;
     });
   });
 
@@ -67,7 +67,7 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
       }, function(err, response) {
         if (err) {
           console.log('The API returned an error: ' + err);
-          return;
+          callback();
         }
         var events = response.items;
         for (var i = 0; i < events.length; i++) {
@@ -91,4 +91,3 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLength) {
 // TODO: check which time blocks are longer than hangoutLength
 
 module.exports.findMutualTime = findMutualTime;
-
