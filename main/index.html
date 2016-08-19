@@ -1,12 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="letsmeet">
   <head>
-    <link rel="stylesheet" type="text/css" href="bootstrap.min.css"/>
-    <script type="text/javascript" src="jquery-2.2.0.min.js"></script>
+    <script src="node_modules/angular/angular.min.js"></script>
+    <script src="ng_modules/letsmeet.js"></script>
+    <link rel="stylesheet" href="letsmeet.css">
   </head>
 
   <body>
-    Hello World!
+    <div>
+      <a href="ask" class="button">Login</a>
+    </div>
+    <div ng-controller="TimeBlockController as tbc">
+      <p>{{tbc.variable}}</p>
+      <form>
+        Email 1:<br>
+        <input type="text" ng-model="tbc.user1"><br>
+        Email 2:<br>
+        <input type="text" name="user2">
+        <input type="submit" value="Compare">
+      </form>
+      <p>{{tbc.user1}}</p>
+      <p>{{tbc}}</p>
+    </div>
+    <div>
+      <p id="result"></p>
+    </div>
   </body>
 
 </html>

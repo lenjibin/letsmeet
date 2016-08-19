@@ -4,11 +4,12 @@ var google = require('googleapis');
 var path = require('path');
 var helpers = require('./main/helpers');
 var creds = require('./main/google_credentials');
-var letsmeet = require('./main/letsmeet');
+var core = require('./main/core');
 var app = express();
 
 var emailToAuth = {};
 
+app.use('/node_modules/angular', express.static('node_modules/angular'));
 app.use(express.static('static'));
 
 app.get('/', function(req, res) {
@@ -56,7 +57,7 @@ app.get('/compare', function(req, res) {
         return;
       }
       var calendars2 = response.items;
-      letsmeet.findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
+      core.findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
     });
   });
   res.redirect('/');
