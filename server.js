@@ -1,3 +1,4 @@
+var bodyParser = require('body-parser');
 var express = require('express');
 var fs = require('fs');
 var google = require('googleapis');
@@ -9,6 +10,8 @@ var app = express();
 
 var emailToAuth = {};
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/node_modules/angular', express.static('node_modules/angular'));
 app.use(express.static('static'));
 
@@ -33,11 +36,10 @@ app.get('/auth', function(req, res) {
   res.redirect('/');
 });
 
-app.get('/compare', function(req, res) {
-  var dayInMinutes = 1440;
-
-  var user1 = req.query.user1;
-  var user2 = req.query.user2;
+app.post('/compare', function(req, res) {
+  var user1 = req.body.user1;
+  var user2 = req.body.user2;
+  var searchLengthInMinutes = req.body.searchLengthInMinutes;
   var auth1 = emailToAuth[user1];
   var auth2 = emailToAuth[user2];
   var googleCalendarApi = google.calendar('v3');
@@ -55,12 +57,14 @@ app.get('/compare', function(req, res) {
           console.log('Calendar list API returned an error: ' + err);
         } else {
           var calendars2 = response.items;
-          var timeBlocks = core.findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
+          core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, function(timeBlocks) {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(timeBlocks));
+          });
         }
       });
     }
   });
-  res.redirect('/');
 });
 
 app.set('port', (process.env.PORT || 3000));

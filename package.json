@@ -5,6 +5,7 @@
   "main": "app.js",
   "dependencies": {
     "angular": "^1.5.8",
+    "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "fs": "0.0.2",
     "google-auth-library": "^0.9.7",
