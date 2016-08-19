@@ -1,1 +1,8 @@
-
+.time-block-tile {
+  background: #148fff;
+  border-radius: 15px;
+  color: #ffffff;
+  display: inline-block;
+  margin: 5px;
+  padding: 20px;
+}
