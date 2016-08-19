@@ -46,19 +46,19 @@ app.get('/compare', function(req, res) {
   }, function(err, response) {
     if (err) {
       console.log('Calendar list API returned an error: ' + err);
-      return;
+    } else {
+      var calendars1 = response.items;
+      googleCalendarApi.calendarList.list({
+        auth: auth2
+      }, function(err, response) {
+        if (err) {
+          console.log('Calendar list API returned an error: ' + err);
+        } else {
+          var calendars2 = response.items;
+          var timeBlocks = core.findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
+        }
+      });
     }
-    var calendars1 = response.items;
-    googleCalendarApi.calendarList.list({
-      auth: auth2
-    }, function(err, response) {
-      if (err) {
-        console.log('Calendar list API returned an error: ' + err);
-        return;
-      }
-      var calendars2 = response.items;
-      core.findMutualTime(auth1, auth2, calendars1, calendars2, dayInMinutes);
-    });
   });
   res.redirect('/');
 });
