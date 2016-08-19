@@ -12,6 +12,7 @@ var emailToAuth = {};
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/node_modules/moment', express.static('node_modules/moment'));
 app.use('/node_modules/angular', express.static('node_modules/angular'));
 app.use(express.static('static'));
 

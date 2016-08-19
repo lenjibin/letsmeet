@@ -1,4 +1,3 @@
-var moment = require('moment');
 var google = require('googleapis');
 var helpers = require('./helpers');
 
@@ -25,10 +24,6 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
       var timeBlocks = [startingTimeBlock];
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
-
-      for (var timeBlocks_i = 0; timeBlocks_i < timeBlocks.length; timeBlocks_i++) {
-        timeBlocks[timeBlocks_i] = toSpecialMomentString(timeBlocks[timeBlocks_i].start) + " - " + toSpecialMomentString(timeBlocks[timeBlocks_i].end);
-      }
 
       callback(timeBlocks);
     });
@@ -88,16 +83,6 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
     } else {
       callback();
     }
-  }
-}
-
-function toSpecialMomentString(dateTimeStr) {
-  var result = moment(dateTimeStr);
-  var calendar = result.calendar();
-  if (calendar.indexOf("/") != -1) {
-    return result.format('MMM Do, h:mm a')
-  } else {
-    return result.calendar();
   }
 }
 
