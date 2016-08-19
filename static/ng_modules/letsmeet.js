@@ -22,6 +22,10 @@ letsmeet.controller('TimeBlockController', function($http) {
     });
   };
 
+  timeBlockController.clickTimeBlock = function(index) {
+    console.log(index);
+  }
+
   function toSpecialMomentString(dateTimeStr) {
     var result = moment(dateTimeStr);
     var calendar = result.calendar();

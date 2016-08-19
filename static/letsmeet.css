@@ -1,8 +1,23 @@
+body {
+  margin: 0;
+}
+
+input, select {
+  margin-bottom: 5px;
+}
+
 .time-block-tile {
   background: #148fff;
   border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   color: #ffffff;
   display: inline-block;
   margin: 5px;
   padding: 20px;
+  transition: all 0.1s ease-in-out;
+}
+
+.time-block-tile:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transform: scale(1.03);
 }

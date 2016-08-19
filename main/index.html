@@ -11,21 +11,29 @@
     <div>
       <a href="ask" class="button">Login</a>
     </div>
-    <br>
+    <hr>
     <div ng-controller="TimeBlockController as tbc">
       <form>
-        Email 1:<br>
-        <input type="text" ng-model="tbc.user1"><br>
-        Email 2:<br>
-        <input type="text" ng-model="tbc.user2"><br>
+        Email 1: <input type="text" ng-model="tbc.user1"><br>
+        Email 2: <input type="text" ng-model="tbc.user2"><br>
+        No earlier than:
+        <select ng-model="tbc.hourOfDayMin" ng-init="tbc.hourOfDayMin=12" ng-options="option for option in [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"></select>
+        <select ng-model="tbc.hourOfDayMinAmPm" ng-init="tbc.hourOfDayMinAmPm='AM'" ng-options="option for option in ['AM', 'PM']"></select><br>
+        No later than:
+        <select ng-model="tbc.hourOfDayMax" ng-init="tbc.hourOfDayMax=12" ng-options="option for option in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"></select>
+        <select ng-model="tbc.hourOfDayMaxAmPm" ng-init="tbc.hourOfDayMaxAmPm='AM'" ng-options="option for option in ['AM', 'PM']"></select><br>
+        Find a time of: <input type="text" ng-model="tbc.hangoutLength"> hours<br>
         <input type="submit" value="Compare" ng-click="tbc.compare()">
       </form>
+      <hr>
       <div>
-        <div class="time-block-tile" ng-repeat="timeBlock in tbc.timeBlocks">{{timeBlock}}</div>
+        <div class="time-block-tile"
+             ng-repeat="timeBlock in tbc.timeBlocks"
+             ng-click="tbc.clickTimeBlock($index)">{{timeBlock}}</div>
       </div>
-      <div>
+      <!-- <div>
         <p id="errors">{{tbc.errors}}</p>
-      </div>
+      </div> -->
     </div>
   </body>
 
