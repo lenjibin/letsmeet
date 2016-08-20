@@ -4,7 +4,7 @@ body {
 
 body::after {
   content: "";
-  background: url(lettucemeat.png) no-repeat;
+  background: url(../lettucemeat.png) no-repeat;
   background-position: center;
   background-size: contain;
   opacity: 0.5;

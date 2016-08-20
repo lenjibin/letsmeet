@@ -14,7 +14,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/node_modules/moment', express.static('node_modules/moment'));
 app.use('/node_modules/angular', express.static('node_modules/angular'));
-app.use(express.static('static'));
+app.use('/ng_modules', express.static('static/ng_modules'));
+app.use(express.static('static/css'));
+app.use(express.static('static/images'));
 
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'main/index.html'));
