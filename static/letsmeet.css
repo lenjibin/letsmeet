@@ -2,6 +2,20 @@ body {
   margin: 0;
 }
 
+body::after {
+  content: "";
+  background: url(lettucemeat.png) no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.5;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;
+}
+
 input, select {
   margin-bottom: 5px;
 }
