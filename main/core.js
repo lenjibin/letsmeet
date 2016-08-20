@@ -1,7 +1,8 @@
 var google = require('googleapis');
+var moment = require('moment');
 var helpers = require('./helpers');
 
-function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, callback) {
+function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, hangoutLengthInMinutes, hourOfDayMin, hourOfDayMax, callback) {
   var TimeBlock = function(start, end) {
     this.start = start;
     this.end = end;
@@ -20,14 +21,24 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
     helpers.asyncLoop(calendars2.length, function(loop) {
       handleCalendar(auth2, calendars2[loop.iteration()], calendar2Events, function() { loop.next(); });
     }, function() {
-      var startingTimeBlock = new TimeBlock(new Date(), new Date(new Date().getTime() + searchLengthInMinutes*60000));
-      var timeBlocks = [startingTimeBlock];
+      var startingTimeBlock = new TimeBlock(moment().startOf('day'), moment().add(searchLengthInMinutes, 'minutes').endOf('day'));
+      var timeBlocks = applyHourOfDayMinAndMax(startingTimeBlock, hourOfDayMin, hourOfDayMax);
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
 
       callback(timeBlocks);
     });
   });
+
+  function applyHourOfDayMinAndMax(timeBlock, hourOfDayMin, hourOfDayMax) {
+    var timeBlocks = [];
+    var currTime = timeBlock.start.clone();
+    while(currTime < timeBlock.end) {
+      timeBlocks.push(new TimeBlock(currTime.clone().hour(hourOfDayMin), currTime.clone().hour(hourOfDayMax)));
+      currTime.add(1, 'days');
+    }
+    return timeBlocks;
+  }
 
   function applyOccupiedTimeBlocks(timeBlocks, calendarEvents) {
     var calendarEvent = calendarEvents.shift();
@@ -85,9 +96,5 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
     }
   }
 }
-
-// TODO: write functions that :
-// TODO: remove blocks of time that are not within hourOfDayMin and hourOfDayMax
-// TODO: check which time blocks are longer than hangoutLength
 
 module.exports.findMutualTime = findMutualTime;

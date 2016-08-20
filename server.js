@@ -41,6 +41,9 @@ app.post('/compare', function(req, res) {
   var user1 = req.body.user1;
   var user2 = req.body.user2;
   var searchLengthInMinutes = req.body.searchLengthInMinutes;
+  var hourOfDayMin = req.body.hourOfDayMin;
+  var hourOfDayMax = req.body.hourOfDayMax;
+  var hangoutLengthInMinutes = req.body.hangoutLengthInMinutes;
   var auth1 = emailToAuth[user1];
   var auth2 = emailToAuth[user2];
   var googleCalendarApi = google.calendar('v3');
@@ -62,7 +65,8 @@ app.post('/compare', function(req, res) {
           res.status(403).send(error);
         } else {
           var calendars2 = response.items;
-          core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes, function(timeBlocks) {
+          core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes,
+                              hangoutLengthInMinutes, hourOfDayMin, hourOfDayMax, function(timeBlocks) {
             res.json(timeBlocks);
           });
         }

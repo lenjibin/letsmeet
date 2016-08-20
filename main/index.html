@@ -22,13 +22,13 @@
         No later than:
         <select ng-model="tbc.hourOfDayMax" ng-init="tbc.hourOfDayMax=12" ng-options="option for option in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"></select>
         <select ng-model="tbc.hourOfDayMaxAmPm" ng-init="tbc.hourOfDayMaxAmPm='AM'" ng-options="option for option in ['AM', 'PM']"></select><br>
-        Find a time of: <input type="text" ng-model="tbc.hangoutLength"> hours<br>
+        <!-- Find a time of: <input type="text" ng-model="tbc.hangoutLength"> hours<br> -->
         <input type="submit" value="Compare" ng-click="tbc.compare()">
       </form>
       <hr>
       <div>
         <div class="time-block-tile"
-             ng-repeat="timeBlock in tbc.timeBlocks"
+             ng-repeat="timeBlock in tbc.timeBlocks track by $index"
              ng-click="tbc.clickTimeBlock($index)">{{timeBlock}}</div>
       </div>
       <!-- <div>
