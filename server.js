@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/node_modules/moment', express.static('node_modules/moment'));
 app.use('/node_modules/angular', express.static('node_modules/angular'));
-app.use('/ng_modules', express.static('static/ng_modules'));
+app.use(express.static('static/js'));
 app.use(express.static('static/css'));
 app.use(express.static('static/images'));
 
