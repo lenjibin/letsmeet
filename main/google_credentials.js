@@ -1,5 +1,6 @@
 var fs = require('fs');
 var google = require('googleapis');
+var MongoClient = require('mongodb').MongoClient;
 var path = require('path');
 
 function getGoogleDevCredentials(callback) {
@@ -20,30 +21,66 @@ function getNewOAuth2Client(credentials, requestHost, callback) {
   callback(oauth2Client);
 }
 
-function getOAuth2ClientWithToken(code, requestHost, callback) {
+function getOAuth2ClientWithToken(code, requestHost, mongoDbURI) {
   getGoogleDevCredentials(function(credentials) {
     getNewOAuth2Client(credentials, requestHost, function(oauth2Client) {
-      // TODO: look up if we already have a token stored for the current user, and if we do:
-      //   use that token as the credentials, then call the callback
-      //   If we dont : call get new token.
-      getNewToken(oauth2Client, code, callback);
+      getToken(oauth2Client, code, mongoDbURI);
     });
   });
+}
 
-  function getNewToken(oauth2Client, code, callback) {
-    oauth2Client.getToken(code, function(err, token) {
+function getToken(oauth2Client, code, mongoDbURI) {
+  oauth2Client.getToken(code, function(err, token) {
+    if (err) {
+      console.log('Error while trying to retrieve access token', err);
+      return;
+    }
+    oauth2Client.credentials = token;
+    var googleCalendarApi = google.calendar('v3');
+    var email;
+    googleCalendarApi.calendars.get({
+      auth: oauth2Client,
+      calendarId: 'primary'
+    }, function(err, response) {
       if (err) {
-        console.log('Error while trying to retrieve access token', err);
-        return;
+        console.log("This should never error. Could not get account's primary caldendar: " + err);
+      } else {
+        email = response.id;
+        storeAuthToken(email, token, mongoDbURI);
       }
-      oauth2Client.credentials = token;
-      // TODO: store token in db (lookup by email)
-      callback(oauth2Client);
     });
-  }
+  });
+}
+
+function storeAuthToken(email, token, mongoDbURI) {
+  MongoClient.connect(mongoDbURI, function(err, db) {
+    if (err) {
+      console.log('could not connect to mongodb: ', mongoDbURI);
+    } else {
+      console.log('connected to db');
+
+      var oauthTokensCollection = db.collection('oauth_tokens');
+      oauthTokensCollection.findOne({email: email}, function(err, res) {
+        if (err) {
+          console.log(err);
+          db.close();
+        } else if (res) {
+          console.log("did not store new auth token: already found auth token for %s", email);
+          db.close();
+        } else {
+          oauthTokensCollection.insert({
+            email: email,
+            token: token
+          }).then(function(res) {
+            console.log("auth token for %s stored with id: %s", email, res.insertedIds.pop());
+            db.close();
+          });
+        }
+      });
+    }
+  });
 }
 
 module.exports.getGoogleDevCredentials = getGoogleDevCredentials;
 module.exports.getNewOAuth2Client = getNewOAuth2Client;
 module.exports.getOAuth2ClientWithToken = getOAuth2ClientWithToken;
-

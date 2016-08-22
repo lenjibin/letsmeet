@@ -10,7 +10,7 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
 
   var CalendarEvents = function() {
     this.events = [];
-    this.allDayEvents = []; // TODO: these are currently not used. in the future will wnat to ask to make sure none of the all day events conflict.
+    this.allDayEvents = []; // TODO: these are currently not used. in the future will want to ask to make sure none of the all day events conflict.
   }
 
   var calendar1Events = new CalendarEvents();

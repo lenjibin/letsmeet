@@ -2,13 +2,12 @@ var bodyParser = require('body-parser');
 var express = require('express');
 var fs = require('fs');
 var google = require('googleapis');
+var MongoClient = require('mongodb').MongoClient;
 var path = require('path');
 var helpers = require('./main/helpers');
 var creds = require('./main/google_credentials');
 var core = require('./main/core');
 var app = express();
-
-var emailToAuth = {};
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -17,6 +16,8 @@ app.use('/node_modules/angular', express.static('node_modules/angular'));
 app.use(express.static('static/js'));
 app.use(express.static('static/css'));
 app.use(express.static('static/images'));
+
+var mongoDbURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/letsmeet';
 
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'main/index.html'));
@@ -35,7 +36,7 @@ app.get('/ask', function(req, res) {
 
 app.get('/auth', function(req, res) {
   var code = req.query.code;
-  creds.getOAuth2ClientWithToken(code, req.get('host'), storeAuthToken);
+  creds.getOAuth2ClientWithToken(code, req.get('host'), mongoDbURI);
   res.redirect('/');
 });
 
@@ -46,31 +47,68 @@ app.post('/compare', function(req, res) {
   var hourOfDayMin = req.body.hourOfDayMin;
   var hourOfDayMax = req.body.hourOfDayMax;
   var hangoutLengthInMinutes = req.body.hangoutLengthInMinutes;
-  var auth1 = emailToAuth[user1];
-  var auth2 = emailToAuth[user2];
   var googleCalendarApi = google.calendar('v3');
-  googleCalendarApi.calendarList.list({
-    auth: auth1
-  }, function(err, response) {
+
+  MongoClient.connect(mongoDbURI, function(err, db) {
     if (err) {
-      var error = 'Service is not authorized to access calendar list API for user 1: ' + err;
-      console.log(error);
-      res.status(403).send(error);
+      console.log('could not connect to mongodb: ', mongoDbURI);
     } else {
-      var calendars1 = response.items;
-      googleCalendarApi.calendarList.list({
-        auth: auth2
-      }, function(err, response) {
-        if (err) {
-          var error = 'Service is not authorized to access calendar list API for user 2: ' + err;
-          console.log(error);
-          res.status(403).send(error);
-        } else {
-          var calendars2 = response.items;
-          core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes,
-                              hangoutLengthInMinutes, hourOfDayMin, hourOfDayMax, function(timeBlocks) {
-            res.json(timeBlocks);
+      console.log('connected to db');
+
+      var oauthTokensCollection = db.collection('oauth_tokens');
+      oauthTokensCollection.findOne({email: user1}, function(err1, res1) {
+        if (err1) {
+          console.log(err1);
+          db.close();
+        } else if (res1) {
+          creds.getGoogleDevCredentials(function(credentials) {
+            creds.getNewOAuth2Client(credentials, req.get('host'), function(auth1) {
+              auth1.credentials = res1.token;
+              oauthTokensCollection.findOne({email: user2}, function(err2, res2) {
+                if (err2) {
+                  console.log(err2);
+                  db.close();
+                } else if (res2) {
+                  db.close();
+                  creds.getNewOAuth2Client(credentials, req.get('host'), function(auth2) {
+                    auth2.credentials = res2.token;
+                    googleCalendarApi.calendarList.list({
+                      auth: auth1
+                    }, function(err, response) {
+                      if (err) {
+                        var error = 'Service is not authorized to access calendar list API for user 1: ' + err;
+                        console.log(error);
+                        res.status(403).send(error);
+                      } else {
+                        var calendars1 = response.items;
+                        googleCalendarApi.calendarList.list({
+                          auth: auth2
+                        }, function(err, response) {
+                          if (err) {
+                            var error = 'Service is not authorized to access calendar list API for user 2: ' + err;
+                            console.log(error);
+                            res.status(403).send(error);
+                          } else {
+                            var calendars2 = response.items;
+                            core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes,
+                                                hangoutLengthInMinutes, hourOfDayMin, hourOfDayMax, function(timeBlocks) {
+                              res.json(timeBlocks);
+                            });
+                          }
+                        });
+                      }
+                    });
+                  });
+                } else {
+                  console.log("no user 2: %s found", user2);
+                  db.close();
+                }
+              });
+            });
           });
+        } else {
+          console.log("no user 1: %s found", user1);
+          db.close();
         }
       });
     }
@@ -84,20 +122,3 @@ var server = app.listen(app.get('port'), function() {
 
   console.log('Example app listening at http://%s:%s', host, port);
 });
-
-function storeAuthToken(auth) {
-  var googleCalendarApi = google.calendar('v3');
-  var email;
-  googleCalendarApi.calendars.get({
-    auth: auth,
-    calendarId: 'primary'
-  }, function(err, response) {
-    if (err) {
-      console.log("This should never error. Could not get account's primary caldendar: " + err);
-    } else {
-      email = response.id;
-      emailToAuth[email] = auth;
-      console.log("auth token for %s stored", email);
-    }
-  });
-}
