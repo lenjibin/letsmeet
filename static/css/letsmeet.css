@@ -6,6 +6,49 @@ input, select {
   margin-bottom: 5px;
 }
 
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.hover-black, ul.navbar > li > a.nav-item.hover-black:hover {
+  color: black;
+}
+
+.logo {
+  padding: 10px 0 0 0;
+  text-decoration: none;
+  width: 30px;
+}
+
+ul.navbar {
+    list-style-type: none;
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+    overflow: hidden;
+    background-color: #148fff;
+}
+
+ul.navbar > li {
+  display: inline;
+}
+
+ul.navbar > li > a.nav-item {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+div.content {
+  margin: 10px;
+}
+
 .time-block-tile {
   background: #148fff;
   border-radius: 15px;
@@ -15,6 +58,9 @@ input, select {
   margin: 5px;
   padding: 20px;
   transition: all 0.1s ease-in-out;
+  width: 150px;
+  height: 250px;
+  vertical-align: top;
 }
 
 .time-block-tile:hover {

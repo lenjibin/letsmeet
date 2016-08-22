@@ -9,11 +9,12 @@
     </head>
 
   <body>
-    <div>
-      <a href="ask" class="button">Login</a>
-    </div>
-    <hr>
-    <div ng-controller="TimeBlockController as tbc">
+    <ul class="navbar">
+      <li class="float-left"><a href="#" class="nav-item">LetsMeet</a></li>
+      <li class="float-left"><a href="#"><img class="logo" src="lettucemeat.png"></a></li>
+      <li class="float-right"><a href="ask" class="nav-item hover-black">Login</a></li>
+    </ul>
+    <div class="content" ng-controller="TimeBlockController as tbc">
       <form>
         Email 1: <input type="text" ng-model="tbc.user1"><br>
         Email 2: <input type="text" ng-model="tbc.user2"><br>
