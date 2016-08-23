@@ -26,6 +26,10 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar1Events.events);
       timeBlocks = applyOccupiedTimeBlocks(timeBlocks, calendar2Events.events);
 
+      timeBlocks = removeEmptyTimeBlocks(timeBlocks);
+      timeBlocks = consolidatetimeBlocks(timeBlocks);
+      timeBlocks = applyHangoutLength(timeBlocks, hangoutLengthInMinutes);
+
       callback(timeBlocks);
     });
   });
@@ -44,7 +48,7 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
     var calendarEvent = calendarEvents.shift();
     while(calendarEvent != null) {
       for (var i = 0; i < timeBlocks.length; i++) {
-        timeBlocks[i] = newTimeBlocks(timeBlocks[i], new TimeBlock(new Date(calendarEvent.start.dateTime), new Date(calendarEvent.end.dateTime)));
+        timeBlocks[i] = newTimeBlocks(timeBlocks[i], new TimeBlock(moment(calendarEvent.start.dateTime), moment(calendarEvent.end.dateTime)));
       }
       timeBlocks = [].concat.apply([], timeBlocks);
       calendarEvent = calendarEvents.shift();
@@ -52,12 +56,63 @@ function findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinu
     return timeBlocks;
   }
 
+  function removeEmptyTimeBlocks(timeBlocks) {
+    var newTimeBlocks = [];
+    for (var i = 0; i < timeBlocks.length; i++) {
+      var currTimeBlock = timeBlocks[i];
+      if (currTimeBlock.start.isSame(currTimeBlock.end, 'minute')) {
+        continue;
+      }
+      newTimeBlocks.push(currTimeBlock);
+    }
+    return newTimeBlocks;
+  }
+
+  function consolidatetimeBlocks(timeBlocks) {
+    if (timeBlocks.length <= 1) {
+      return timeBlocks;
+    }
+    var newTimeBlocks = [];
+    var nextTimeBlockToBeAdded = new TimeBlock(timeBlocks[0].start, timeBlocks[0].end);
+    for (var i = 0; i < timeBlocks.length; i++) {
+      var currTimeBlock = timeBlocks[i];
+      var currTimeBlockPlusOne = timeBlocks[i+1];
+      if (currTimeBlockPlusOne) {
+        if (currTimeBlock.end.isSame(currTimeBlockPlusOne.start, 'minute')) {
+          nextTimeBlockToBeAdded.end = currTimeBlockPlusOne.end;
+        } else {
+          newTimeBlocks.push(nextTimeBlockToBeAdded);
+          nextTimeBlockToBeAdded = new TimeBlock(currTimeBlockPlusOne.start, currTimeBlockPlusOne.end);
+        }
+      } else {
+        newTimeBlocks.push(nextTimeBlockToBeAdded);
+      }
+    }
+    return newTimeBlocks;
+  }
+
+  function applyHangoutLength(timeBlocks, hangoutLengthInMinutes) {
+    if (!hangoutLengthInMinutes) {
+      hangoutLengthInMinutes = 0;
+    }
+    var newTimeBlocks = [];
+    for (var i = 0; i < timeBlocks.length; i++) {
+      var currTimeBlock = timeBlocks[i];
+      if (currTimeBlock.end.diff(currTimeBlock.start, 'minutes') >= hangoutLengthInMinutes) {
+        newTimeBlocks.push(currTimeBlock);
+      }
+    }
+    return newTimeBlocks;
+  }
+
   function newTimeBlocks(originalTimeBlock, occupiedTimeBlock) {
-    if (occupiedTimeBlock.start < originalTimeBlock.start && occupiedTimeBlock.end > originalTimeBlock.start) {
+    if (occupiedTimeBlock.start.isBefore(originalTimeBlock.start, 'minute') && occupiedTimeBlock.end.isAfter(originalTimeBlock.end, 'minute')) {
+      return [];
+    } else if (occupiedTimeBlock.start.isBefore(originalTimeBlock.start, 'minute') && occupiedTimeBlock.end.isAfter(originalTimeBlock.start, 'minute')) {
       return new TimeBlock(occupiedTimeBlock.end, originalTimeBlock.end);
-    } else if (occupiedTimeBlock.end > originalTimeBlock.end && occupiedTimeBlock.start < originalTimeBlock.end) {
+    } else if (occupiedTimeBlock.end.isAfter(originalTimeBlock.end, 'minute') && occupiedTimeBlock.start.isBefore(originalTimeBlock.end, 'minute')) {
       return new TimeBlock(originalTimeBlock.start, occupiedTimeBlock.start);
-    } else if (occupiedTimeBlock.start > originalTimeBlock.start && occupiedTimeBlock.end < originalTimeBlock.end) {
+    } else if (occupiedTimeBlock.start.isAfter(originalTimeBlock.start, 'minute') && occupiedTimeBlock.end.isBefore(originalTimeBlock.end, 'minute')) {
       return [new TimeBlock(originalTimeBlock.start, occupiedTimeBlock.start), new TimeBlock(occupiedTimeBlock.end, originalTimeBlock.end)];
     } else {
       return originalTimeBlock;
