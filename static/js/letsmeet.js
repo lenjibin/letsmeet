@@ -42,6 +42,7 @@ letsmeet.controller('TimeBlockController', function($http) {
               searchLengthInMinutes: 10080, // this is one week TODO: make this variable and a more understandable option (days maybe)
               hourOfDayMin: minHourLookups[timeBlockController.hourOfDayMin][timeBlockController.hourOfDayMinAmPm],
               hourOfDayMax: maxHourLookups[timeBlockController.hourOfDayMax][timeBlockController.hourOfDayMaxAmPm],
+              hangoutLengthInMinutes: timeBlockController.hangoutLength*60
             }
     }).then(function(response) {
       var timeBlocks = response.data;

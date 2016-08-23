@@ -93,6 +93,7 @@ app.post('/compare', function(req, res) {
                             var calendars2 = response.items;
                             core.findMutualTime(auth1, auth2, calendars1, calendars2, searchLengthInMinutes,
                                                 hangoutLengthInMinutes, hourOfDayMin, hourOfDayMax, function(timeBlocks) {
+                              console.log("mutual times found and returned");
                               res.json(timeBlocks);
                             });
                           }
