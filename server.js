@@ -28,7 +28,7 @@ app.get('/ask', function(req, res) {
     creds.getNewOAuth2Client(credentials, req.get('host'), function(oauth2Client) {
       res.redirect(oauth2Client.generateAuthUrl({
         access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/calendar.readonly'],
+        scope: ['https://www.googleapis.com/auth/calendar'],
         approval_prompt: 'force'
       }));
     });
